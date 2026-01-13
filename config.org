@@ -5,9 +5,9 @@
 #+OPTIONS: toc:2
 
 * TABLE OF CONTENTS :toc:
-- [[#necessary-programs-to-load][NECESSARY PROGRAMS TO LOAD]]
+- [[#initial-modules-to-load][INITIAL MODULES TO LOAD]]
   - [[#elpaca-package-manager][Elpaca Package Manager]]
-  - [[#load-evil-mode][Load Evil Mode]]
+- [[#evil-mode][EVIL MODE]]
 - [[#which-key][WHICH-KEY]]
 - [[#org-mode][ORG MODE]]
   - [[#toc-org][Toc-Org]]
@@ -19,10 +19,16 @@
   - [[#setting-the-fonts][Setting the Fonts]]
   - [[#zooming-inout][Zooming In/Out]]
 - [[#general-user-interface-tweaks][GENERAL USER INTERFACE TWEAKS]]
+- [[#user-interface-theme][USER INTERFACE THEME]]
+- [[#general-tweaks][GENERAL TWEAKS]]
 - [[#sudo-edit][SUDO EDIT]]
 - [[#reload-emacs][RELOAD EMACS]]
+- [[#kill-all-processes][KILL ALL PROCESSES]]
+- [[#markdown][MARKDOWN]]
+- [[#ivy-counsel][IVY (COUNSEL)]]
+- [[#grip-mode][GRIP-MODE]]
 
-* NECESSARY PROGRAMS TO LOAD
+* INITIAL MODULES TO LOAD
 #+begin_src emacs-lisp
   (add-to-list 'load-path "~/.config/emacs/scripts")
 #+end_src
@@ -32,7 +38,7 @@
   (require 'elpaca-setup)
 #+end_src
 
-** Load Evil Mode
+* EVIL MODE
 [[https://github.com/emacs-evil/evil][Evil]] is an extensible vi/vim layer for Emacs.  Because...let's face it.  The Vim keybindings are just plain better.
 #+begin_src emacs-lisp
   ;; Expands to: (elpaca evil (use-package evil :demand t))
@@ -129,7 +135,6 @@ Org-tempo is not a separate package but a module within org that can be enabled.
 | <s                     | '#+BEGIN_SRC' … '#+END_SRC'             |
 | <v                     | '#+BEGIN_VERSE' … '#+END_VERSE'         |
 
-
 #+begin_src emacs-lisp 
   (require 'org-tempo)
 #+end_src
@@ -151,6 +156,7 @@ Org-tempo is not a separate package but a module within org that can be enabled.
       "SPC" '(counsel-M-x :wk "Counsel M-x")
       "." '(find-file :wk "Find file")
       "f c" '((lambda () (interactive) (find-file "~/.config/emacs/config.org")) :wk "Edit Emacs Config")
+      "g" '(counsel-imenu :wk "Go to in file")
       "TAB TAB" '(comment-line :wk "Comment lines"))
     
     (ta/leader-keys
@@ -182,6 +188,9 @@ Org-tempo is not a separate package but a module within org that can be enabled.
       "t l" '(display-line-numbers-mode :wk "Toggle line numbers")
       "t t" '(visual-line-mode :wk "Toggle truncated lines"))
 
+    (ta/leader-keys    
+      "m"  '(:ignore t :wk "markdown")    
+      "m p" '(markdown-toggle-markup-hiding  :wk "Toggle Markdown Preview"))
     
     )
 #+end_src
@@ -191,32 +200,25 @@ Defining the various fonts that Emacs will use.
 ** Setting the Fonts
 #+begin_src emacs-lisp
   (set-face-attribute 'default nil
-  		    :font "JetBrains Mono"
-  		    :height 140 
-  		    :weight 'medium)
+    		    :font "IBM Plex Mono"
+    		    :height 140 
+    		    :weight 'medium)
   (set-face-attribute 'variable-pitch nil
-  		    :font "Ubuntu"
-  		    :height 140
-  		    :weight 'medium)
+    		    :font "Ubuntu"
+    		    :height 140
+    		    :weight 'medium)
   (set-face-attribute 'fixed-pitch nil
-  		    :font "JetBrains Mono"
-  		    :height 140
-  		    :weight 'medium)
-  ;; Makes commented text and keywords italics.
-  ;; This is working in emacsclient but not emacs.
-  ;; Your font must have an italic face available.
-  (set-face-attribute 'font-lock-comment-face nil
-  		    :slant 'italic)
-  (set-face-attribute 'font-lock-keyword-face nil
-  		    :slant 'italic)
+    		    :font "IBM Plex Mono"
+    		    :height 140
+    		    :weight 'medium)
 
   ;; This sets the default font on all graphical frames created after restarting Emacs.
   ;; Does the same thing as 'set-face-attribute default' above, but emacsclient fonts
   ;; are not right unless I also add this method of setting the default font.
-  (add-to-list 'default-frame-alist '(font . "JetBrains Mono-13"))
+  (add-to-list 'default-frame-alist '(font . "IBM Plex Mono-13"))
 
   ;; Uncomment the following line if line spacing needs adjusting.
-  (setq-default line-spacing 0.3)
+  (setq-default line-spacing 0.6)
   (set-face-background 'mouse "#ffffff")
 #+end_src
 
@@ -237,6 +239,40 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
   (scroll-bar-mode -1)
   (global-display-line-numbers-mode 1)
   (global-visual-line-mode t)
+  (tab-bar-mode -1)
+#+end_src
+
+* USER INTERFACE THEME
+#+begin_src emacs-lisp
+  (use-package modus-themes
+    :ensure t
+    :config
+    (setq modus-themes-common-palette-overrides     
+          `(          
+            ;; Borderless Mode Line          
+            (border-mode-line-active unspecified)          
+            (border-mode-line-inactive unspecified)
+            ;; Mode line colors
+            (bg-mode-line-active "#0f0f0f")
+            (fg-mode-line-active "#ffffff")
+            (bg-mode-line-inactive "#0f0f0f")
+            (fg-mode-line-inactive "#ffffff")
+  	  ;; Tab bar colors      
+  	  (bg-tab-bar "#000000")      
+  	  (bg-tab-current "#285577")      
+  	  (bg-tab-other "#000000")
+            ))
+    (setq modus-themes-bold-constructs t)  
+    (setq modus-themes-italic-constructs nil)
+    (setq modus-themes-completions        
+          '((matches . (extrabold underline))          
+       	  (selection . (semibold italic))))
+    (load-theme 'modus-vivendi-tritanopia t)) 
+#+end_src
+
+* GENERAL TWEAKS
+#+begin_src emacs-lisp
+  (setq delete-by-moving-to-trash t)
 #+end_src
 
 * SUDO EDIT
@@ -246,13 +282,11 @@ You can use the bindings CTRL plus =/- for zooming in/out.  You can also use CTR
   (use-package sudo-edit
     :config
     (ta/leader-keys
-      "fu" '(sudo-edit-find-file :wk "Sudo find file")
-      "fU" '(sudo-edit :wk "Sudo edit file")))
+      "f u" '(sudo-edit-find-file :wk "Sudo find file")
+      "f U" '(sudo-edit :wk "Sudo edit file")))
 #+end_src
 
 * RELOAD EMACS
-This is just an example of how to create a simple function in Emacs.  Use this function to reload Emacs after adding changes to the config.  Yes, I am loading the user-init-file twice in this function, which is a hack because for some reason, just loading the user-init-file once does not work properly.
-
 #+begin_src emacs-lisp
 (defun reload-init-file ()
   (interactive)
@@ -260,4 +294,52 @@ This is just an example of how to create a simple function in Emacs.  Use this f
   (load-file user-init-file))
 #+end_src
 
+* KILL ALL PROCESSES
+#+begin_src emacs-lisp
+(defun kill-all-processes ()
+  "Kill all active processes in Emacs."
+  (interactive)
+  (mapc 'delete-process (process-list)))
+#+end_src
+
+* MARKDOWN
+#+begin_src emacs-lisp
+  ;; MARKDOWN MODE CONFIGURATION
+  (use-package markdown-mode
+    :ensure t
+    :mode ("\\.md\\'" . markdown-mode)
+    :bind (:map markdown-mode-map         
+  	      ("C-c C-o" . markdown-follow-link-at-point))
+    :hook ((markdown-mode . markdown-toggle-markup-hiding)
+  	 (markdown-mode . markdown-toggle-fontify-code-blocks-natively))
+    :config
+
+    ;; Configure header appearance with variable pitch fonts
+    (custom-set-faces
+     '(markdown-header-face ((t (:inherit font-lock-function-name-face :weight bold :family "variable-pitch"))))
+     '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 2.0))))
+     '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 1.8))))
+     '(markdown-header-face-3 ((t (:inherit markdown-header-face :height 1.6))))
+     '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.4))))
+     '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.2))))
+     '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.1))))))
+
+  (use-package markdown-toc
+    :ensure t)
+#+end_src
+
+* IVY (COUNSEL)
+#+begin_src emacs-lisp
+  (use-package ivy
+    :ensure t)
+
+  (use-package counsel
+    :ensure t)
+#+end_src
+
+* GRIP-MODE
+#+begin_src emacs-lisp 
+  
+
+#+end_src
 
